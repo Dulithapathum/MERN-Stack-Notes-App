@@ -23,6 +23,32 @@ app.get("/", (req, res) => {
   res.json({ data: "hello" });
 });
 
+// Get User
+app.get("/get-user", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        error: true,
+        message: "User not found",
+      });
+    }
+
+    return res.json({
+      error: false,
+      user,
+      message: "User retrieved successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
 // New User Create
 app.post("/create-account", async (req, res) => {
   const { fullName, email, password } = req.body;
