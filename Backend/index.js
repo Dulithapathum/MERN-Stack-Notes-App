@@ -194,6 +194,37 @@ return res.json({
 
 });
 
+// Get All Notes
+app.get("/get-all-notes", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+  
+    const notes = await Note.find({ userId });
+
+    if (notes.length === 0) {
+      return res.status(404).json({
+        error: true,
+        message: "No notes found",
+      });
+    }
+
+    return res.json({
+      error: false,
+      notes,
+      message: "Notes retrieved successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+
+
+
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
 });
