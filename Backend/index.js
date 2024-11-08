@@ -160,38 +160,33 @@ app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
     });
   }
 
+  try {
+    const note = await Note.findOne({ _id: noteId, userId: userId });
+    if (!note) {
+      return res.status(404).json({
+        error: true,
+        message: "Note Not Found",
+      });
+    }
 
-try {
-  const note=await Note.findOne({_id:noteId,userId:userId})
-  if(!note){
-    return res.status(404).json({
-      error:true,
-      message:"Note Not Found"
-    })
+    if (title) note.title = title;
+    if (content) note.content = content;
+    if (tags) note.tags = tags;
+    if (isPinned) note.isPinned = isPinned;
+
+    await note.save();
+
+    return res.json({
+      error: false,
+      note,
+      message: "Note Update Successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
   }
-
-  if(title) note.title=title
-  if(content) note.content=content
-  if(tags) note.tags=tags
-  if(isPinned) note.isPinned=isPinned
-
-
-  await note.save(
-  )
-
-return res.json({
-  error:false,
-  note,
-  message:"Note Update Successfully"
-})
-
-} catch (error) {
-  return res.status(500).json({
-    error:true,
-    message:'Internal Server Error'
-  })
-}
-
 });
 
 // Get All Notes
@@ -199,7 +194,6 @@ app.get("/get-all-notes", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
   try {
-  
     const notes = await Note.find({ userId });
 
     if (notes.length === 0) {
@@ -222,8 +216,35 @@ app.get("/get-all-notes", authenticateToken, async (req, res) => {
   }
 });
 
+// Delete Note
+app.delete("/delete-note/:noteId", authenticateToken, async (req, res) => {
+  const noteId = req.params.noteId;
+  const userId = req.user.userId;
 
+  try {
+    const note = await Note.findOne({ _id: noteId, userId });
 
+    if (!note) {
+      return res.status(404).json({
+        error: true,
+        message:
+          "Note not found or you do not have permission to delete this note",
+      });
+    }
+
+    await note.deleteOne({ _id: noteId, userId });
+
+    return res.json({
+      error: false,
+      message: "Note deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
