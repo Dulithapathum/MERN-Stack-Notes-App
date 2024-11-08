@@ -23,6 +23,7 @@ app.get("/", (req, res) => {
   res.json({ data: "hello" });
 });
 
+// New User Create
 app.post("/create-account", async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -71,6 +72,7 @@ app.post("/create-account", async (req, res) => {
   });
 });
 
+// Login
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -237,6 +239,40 @@ app.delete("/delete-note/:noteId", authenticateToken, async (req, res) => {
     return res.json({
       error: false,
       message: "Note deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+// Update Note Pin
+app.put("/update-note-pinned/:noteId", authenticateToken, async (req, res) => {
+  const noteId = req.params.noteId;
+  const { isPinned } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const note = await Note.findOne({ _id: noteId, userId });
+
+    if (!note) {
+      return res.status(404).json({
+        error: true,
+        message:
+          "Note not found or you do not have permission to update this note",
+      });
+    }
+
+    note.isPinned = isPinned;
+
+    await note.save();
+
+    return res.json({
+      error: false,
+      note,
+      message: `Note ${isPinned ? "pinned" : "unpinned"} successfully`,
     });
   } catch (error) {
     return res.status(500).json({
