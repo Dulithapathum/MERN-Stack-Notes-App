@@ -3,10 +3,12 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const{authenticateToken}=require("./utilities")
 
 dotenv.config();
 
 const User = require("./models/userModel");
+const Note = require("./models/note.model");
 
 const app = express();
 app.use(express.json());
@@ -77,7 +79,9 @@ app.post("/login", async (req, res) => {
   }
 
   if (!password) {
-    return res.status(400).json({ error: true, message: "Password is required" });
+    return res
+      .status(400)
+      .json({ error: true, message: "Password is required" });
   }
 
   const userInfo = await User.findOne({ email: email });
@@ -87,12 +91,18 @@ app.post("/login", async (req, res) => {
   }
 
   if (userInfo.password !== password) {
-    return res.status(400).json({ error: true, message: "Invalid credentials" });
+    return res
+      .status(400)
+      .json({ error: true, message: "Invalid credentials" });
   }
 
-  const accessToken = jwt.sign({ userId: userInfo._id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "10h",
-  });
+  const accessToken = jwt.sign(
+    { userId: userInfo._id },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "10h",
+    }
+  );
 
   return res.json({
     error: false,
@@ -101,7 +111,44 @@ app.post("/login", async (req, res) => {
   });
 });
 
+app.post("/add-note", authenticateToken, async (req, res) => {
+  const { title, content, tags } = req.body;
+ 
 
+  if (!title) {
+    return res.status(400).json({ error: true, message: "Title is required" });
+  }
+
+  if (!content) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Content is required" });
+  }
+
+  try {
+    const note = new Note({
+      title,
+      content,
+      tags: tags || [],
+      userId: req.user.userId
+    });
+
+
+
+    await note.save()
+
+    return res.json({
+      error:false,
+      note,
+      message:"Note Added Successfully",
+    })
+  } catch (error) {
+    return res.status(500).json({
+      error:true,
+      message:"Internal Server Error"
+    })
+  }
+});
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
