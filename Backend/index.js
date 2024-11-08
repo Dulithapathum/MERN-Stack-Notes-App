@@ -3,7 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const{authenticateToken}=require("./utilities")
+const { authenticateToken } = require("./utilities");
 
 dotenv.config();
 
@@ -111,9 +111,9 @@ app.post("/login", async (req, res) => {
   });
 });
 
+// Add Note
 app.post("/add-note", authenticateToken, async (req, res) => {
   const { title, content, tags } = req.body;
- 
 
   if (!title) {
     return res.status(400).json({ error: true, message: "Title is required" });
@@ -130,24 +130,68 @@ app.post("/add-note", authenticateToken, async (req, res) => {
       title,
       content,
       tags: tags || [],
-      userId: req.user.userId
+      userId: req.user.userId,
     });
 
-
-
-    await note.save()
+    await note.save();
 
     return res.json({
-      error:false,
+      error: false,
       note,
-      message:"Note Added Successfully",
-    })
+      message: "Note Added Successfully",
+    });
   } catch (error) {
     return res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+// Edit Note
+app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
+  const noteId = req.params.noteId;
+  const { title, content, tags, isPinned } = req.body;
+  const userId = req.user.userId;
+  if (!title && !content && !tags) {
+    return res.status(400).json({
+      error: true,
+      message: "No Changes Provided",
+    });
+  }
+
+
+try {
+  const note=await Note.findOne({_id:noteId,userId:userId})
+  if(!note){
+    return res.status(404).json({
       error:true,
-      message:"Internal Server Error"
+      message:"Note Not Found"
     })
   }
+
+  if(title) note.title=title
+  if(content) note.content=content
+  if(tags) note.tags=tags
+  if(isPinned) note.isPinned=isPinned
+
+
+  await note.save(
+  )
+
+return res.json({
+  error:false,
+  note,
+  message:"Note Update Successfully"
+})
+
+} catch (error) {
+  return res.status(500).json({
+    error:true,
+    message:'Internal Server Error'
+  })
+}
+
 });
 
 app.listen(8000, () => {
