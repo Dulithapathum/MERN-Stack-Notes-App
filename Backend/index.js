@@ -69,6 +69,40 @@ app.post("/create-account", async (req, res) => {
   });
 });
 
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: true, message: "Email is required" });
+  }
+
+  if (!password) {
+    return res.status(400).json({ error: true, message: "Password is required" });
+  }
+
+  const userInfo = await User.findOne({ email: email });
+
+  if (!userInfo) {
+    return res.status(400).json({ error: true, message: "User not found" });
+  }
+
+  if (userInfo.password !== password) {
+    return res.status(400).json({ error: true, message: "Invalid credentials" });
+  }
+
+  const accessToken = jwt.sign({ userId: userInfo._id }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "10h",
+  });
+
+  return res.json({
+    error: false,
+    message: "Login successful",
+    accessToken,
+  });
+});
+
+
+
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
 });
