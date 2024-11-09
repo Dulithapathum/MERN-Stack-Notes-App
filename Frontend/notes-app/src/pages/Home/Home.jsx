@@ -2,8 +2,11 @@ import { MdAdd } from "react-icons/md";
 import NoteCard from "../../components/Cards/NoteCard";
 import NavBar from "../../components/NavBar/NavBar";
 import AddEditNotes from "./AddEditNotes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axiosInstance from "../../utils/axiosInstance";
 import Modal from "react-modal";
+import { useNavigate } from "react-router-dom";
+
 const Home = () => {
   const [openAddEditModal, setOpenAddEditModal] = useState({
     isShown: false,
@@ -11,23 +14,49 @@ const Home = () => {
     data: null,
   });
 
+  const [userInfo, setUserInfo] = useState(null);
+  const navigate = useNavigate();
+
+  const getUserInfo = async () => {
+    try {
+      const response = await axiosInstance.get("/get-user");
+      if (response.data && response.data.user) {
+        setUserInfo(response.data.user);
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        localStorage.clear();
+        navigate("/login");
+      } else {
+        console.error("An error occurred while fetching user info", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getUserInfo();
+  }, []);
+
   return (
     <>
-      <NavBar />
-      <div className=" container mx-auto">
+      <NavBar userInfo={userInfo} />
+      <div className="container mx-auto">
         <div className="grid grid-cols-3 gap-4 mt-8">
           <NoteCard
-            title="meeting 7th of november"
-            content=" I will not publish this remix on streaming platforms like Spotify, Apple Music without the permission of the respected owner. It's just a Remix"
-            date="3rd november 2024"
+            title="Meeting on 7th November"
+            content="I will not publish this remix on streaming platforms without permission. It's just a remix."
+            date="3rd November 2024"
             tags="meeting"
             isPinned={true}
             onEdit={() => {}}
             onDelete={() => {}}
             onPinNote={() => {}}
           />
+          {/* You may want to map over notes and render NoteCard components dynamically here */}
         </div>
       </div>
+      
+      {/* Button to open the Add/Edit modal */}
       <button
         className="w-16 h-16 flex items-center justify-center rounded-2xl bg-primary hover:bg-blue-600 absolute right-10 bottom-10"
         onClick={() => {
@@ -36,18 +65,18 @@ const Home = () => {
       >
         <MdAdd className="text-[32px] text-white" />
       </button>
+
+      {/* Add/Edit Note Modal */}
       <Modal
         isOpen={openAddEditModal.isShown}
-        onRequestClose={() => {}}
+        onRequestClose={() => setOpenAddEditModal({ isShown: false, type: "add", data: null })}
         style={{ overlay: { backgroundColor: "rgba(0,0,0,0.2)" } }}
-        className="w-[40%] max-h-3/4  bg-white rounded-md mx-auto mt-14 p-5  "
+        className="w-[40%] max-h-3/4 bg-white rounded-md mx-auto mt-14 p-5"
       >
         <AddEditNotes
-        type={openAddEditModal.type}
-        noteData={openAddEditModal.data}
-          onClose={() => {
-            setOpenAddEditModal({ isShown: false, type: "data", data: null });
-          }}
+          type={openAddEditModal.type}
+          noteData={openAddEditModal.data}
+          onClose={() => setOpenAddEditModal({ isShown: false, type: "add", data: null })}
         />
       </Modal>
     </>
