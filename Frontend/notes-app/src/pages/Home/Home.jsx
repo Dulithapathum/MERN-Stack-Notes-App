@@ -91,6 +91,26 @@ try {
 
   }
 
+
+  const togglePin = async (noteId, isPinned) => {
+    try {
+      const response = await axiosInstance.put(`/update-note-pinned/${noteId}`, {
+        isPinned: !isPinned,
+      });
+      if (response.data && response.data.success) {
+        showToastMessage(`Note ${!isPinned ? "Pinned" : "Unpinned"} Successfully`);
+        setAllNotes((prevNotes) =>
+          prevNotes.map((note) =>
+            note._id === noteId ? { ...note, isPinned: !isPinned } : note
+          )
+        );
+      }
+    } catch (error) {
+      console.error("An error occurred while pinning/unpinning the note", error);
+    }
+  };
+
+  
   useEffect(() => {
     getAllNotes();
     getUserInfo();
@@ -111,7 +131,7 @@ try {
               isPinned={note.isPinned}
               onEdit={() => handleEdit(note)}
               onDelete={() => {deleteNote(note)}}
-              onPinNote={() => {}}
+              onPinNote={() => { togglePin(note._id, note.isPinned)}}
             />
           ))}
         </div>

@@ -222,18 +222,22 @@ app.get("/get-all-notes", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const notes = await Note.find({ userId });  // Fetch notes by userId
+    const notes = await Note.find({ userId }); // Fetch notes by userId
     if (!notes.length) {
       return res.status(404).json({ error: true, message: "No notes found" });
     }
-    return res.json({ error: false, notes, message: "Notes retrieved successfully" });
+    return res.json({
+      error: false,
+      notes,
+      message: "Notes retrieved successfully",
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: true, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal server error" });
   }
-  }
-);
-
+});
 
 // Delete Note
 app.delete("/delete-note/:noteId", authenticateToken, async (req, res) => {
