@@ -4,9 +4,9 @@ import { MdClose } from "react-icons/md";
 import axiosInstance from "../../utils/axiosInstance";
 
 const AddEditNotes = ({ noteData, type, getAllNotes, onClose }) => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [tags, setTags] = useState([]);
+  const [title, setTitle] = useState(noteData?.title || "");
+  const [content, setContent] = useState(noteData?.content || "");
+  const [tags, setTags] = useState(noteData?.tags || []);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const AddEditNotes = ({ noteData, type, getAllNotes, onClose }) => {
 
   const editNote = async () => {
     try {
-      const response = await axiosInstance.put(`/update-note/${noteData._id}`, {
+      const response = await axiosInstance.put(`/edit-note/${noteData._id}`, {
         title,
         content,
         tags,

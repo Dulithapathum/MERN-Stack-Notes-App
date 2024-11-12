@@ -2,6 +2,7 @@ import { MdAdd } from "react-icons/md";
 import NoteCard from "../../components/Cards/NoteCard";
 import NavBar from "../../components/NavBar/NavBar";
 import AddEditNotes from "./AddEditNotes";
+import moment from "moment";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import Modal from "react-modal";
@@ -55,7 +56,7 @@ const Home = () => {
     getUserInfo();
   }, []);
 
-  if (!userInfo) return <div>Loading...</div>;
+  
 
   return (
     <>
@@ -67,7 +68,7 @@ const Home = () => {
               key={index}
               title={note.title}
               content={note.content}
-              date={new Date(note.date).toLocaleDateString()}
+              date={note.createdOn}
               tags={note.tags}
               isPinned={note.isPinned}
               onEdit={() => handleEdit(note)}
